@@ -14,6 +14,8 @@ var info = chalk.blue;
 
 var expandHomeDir = require('expand-home-dir');
 
+var leetCodeDir = '~/Desktop/LeetCode/';
+
 function listQuestions() {
   return request.getAsync('https://leetcode.com/problemset/algorithms');
 }
@@ -48,8 +50,7 @@ function parseQuestions(res) {
 }
 
 function readLeetCodedir() {
-  return fs.readdirAsync(expandHomeDir('~/Desktop/LeetCode/'))
-    .then(removeHiddenFiles);
+  return fs.readdirAsync(expandHomeDir(leetCodeDir));
 }
 
 function removeHiddenFiles(files) {
@@ -90,10 +91,14 @@ function rand(start, end) {
   return Math.floor((Math.random() * end) + start);
 }
 
-function interactivePrompt(unsolvedQuestions) {
-  var questionNumber = rand(1, unsolvedQuestions.length);
-  selectedQuestion = unsolvedQuestions[questionNumber];
+function startStdinListener(unsolvedQuestions) {
+  console.log(success('found all unsolved questions!'));
+  interactivePrompt(unsolvedQuestions);
+}
 
+function interactivePrompt(unsolvedQuestions) {
+  var questionNumber = rand(1, unsolvedQuestions.length-1);
+  selectedQuestion = unsolvedQuestions[questionNumber];
   console.log('solve question ' + info(selectedQuestion.number) + ', ' + info(selectedQuestion.name) + ' which is ' + info(selectedQuestion.difficulty) + "?");
 
   var input = sget().toString().charAt(0);
@@ -102,21 +107,16 @@ function interactivePrompt(unsolvedQuestions) {
 }
 
 function createFolder(selectedQuestion) {
-  fs.mkdirAsync(expandHomeDir('~/Desktop/LeetCode/' + selectedQuestion.name))
+  fs.mkdirAsync(expandHomeDir(leetCodeDir + selectedQuestion.name))
     .then(createFiles(selectedQuestion.name))
     .catch(console.error);
 }
 
 function createFiles(name) {
-  touch.sync(expandHomeDir('~/Desktop/LeetCode/' + name + '/Solution.java'));
+  touch.sync(expandHomeDir(leetCodeDir + name + '/Solution.java'));
+  console.log(success('created the folder and Solution.java'));
   process.exit();
 }
-
-function startStdinListener(unsolvedQuestions) {
-  console.log(success('found all unsolved questions!'));
-  interactivePrompt(unsolvedQuestions, null);
-}
-
 
 P.all([
     listQuestions().then(parseQuestions),
