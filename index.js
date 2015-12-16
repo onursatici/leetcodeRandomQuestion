@@ -40,9 +40,10 @@ function parseQuestions(res) {
     var name = $(children[2]).text().trim();
     var difficulty = $(children[4]).text().trim();
 
-    questions[processName(name)] = {
+    questions[processName(name).toUpperCase()] = {
       number: number,
-      difficulty: difficulty
+      difficulty: difficulty,
+      folderName: processName(name)
     };
 
   });
@@ -66,7 +67,7 @@ function removeSolvedQuestions(data) {
   solvedQuestions = data[1];
   for (var i = 0; i < solvedQuestions.length; i++) {
     var q = solvedQuestions[i];
-    if (leetCodeQuestions[q]) {
+    if (leetCodeQuestions[q.toUpperCase()]) {
       delete leetCodeQuestions[q];
     }
   }
@@ -78,7 +79,7 @@ function turnQuestionsIntoArray(questions) {
   for (var q in questions) {
     if (parseInt(questions[q].number)) {
       questionArray.push({
-        name: q,
+        name: questions[q].folderName,
         difficulty: questions[q].difficulty,
         number: questions[q].number
       });
