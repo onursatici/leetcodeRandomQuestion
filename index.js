@@ -4,6 +4,13 @@ var P = require('bluebird');
 var request = P.promisifyAll(require('request'));
 var cheerio = P.promisifyAll(require('cheerio'));
 var fs = P.promisifyAll(require('fs'));
+var sget = require('sget');
+var touch = require('touch');
+
+var chalk = require('chalk');
+var success = chalk.green;
+var failure = chalk.red;
+var info = chalk.blue;
 
 var expandHomeDir = require('expand-home-dir');
 
@@ -68,7 +75,7 @@ function removeSolvedQuestions(data) {
 function turnQuestionsIntoArray(questions) {
   var questionArray = [];
   for (var q in questions) {
-    if(parseInt(questions[q].number)){
+    if (parseInt(questions[q].number)) {
       questionArray.push({
         name: q,
         difficulty: questions[q].difficulty,
@@ -83,13 +90,33 @@ function rand(start, end) {
   return Math.floor((Math.random() * end) + start);
 }
 
-function startInteractivePrompt(unsolvedQuestions) {
-  //TODO: finish this, implement the creation of the folder structure
+function interactivePrompt(unsolvedQuestions) {
   var questionNumber = rand(1, unsolvedQuestions.length);
-  console.log('solve this:');
-  var q = unsolvedQuestions[questionNumber];
-  console.log(q);
+  selectedQuestion = unsolvedQuestions[questionNumber];
+
+  console.log('solve question ' + info(selectedQuestion.number) + ', ' + info(selectedQuestion.name) + ' which is ' + info(selectedQuestion.difficulty) + "?");
+
+  var input = sget().toString().charAt(0);
+  if (input == 'y' && selectedQuestion) createFolder(selectedQuestion);
+  interactivePrompt(unsolvedQuestions);
 }
+
+function createFolder(selectedQuestion) {
+  fs.mkdirAsync(expandHomeDir('~/Desktop/LeetCode/' + selectedQuestion.name))
+    .then(createFiles(selectedQuestion.name))
+    .catch(console.error);
+}
+
+function createFiles(name) {
+  touch.sync(expandHomeDir('~/Desktop/LeetCode/' + name + '/Solution.java'));
+  process.exit();
+}
+
+function startStdinListener(unsolvedQuestions) {
+  console.log(success('found all unsolved questions!'));
+  interactivePrompt(unsolvedQuestions, null);
+}
+
 
 P.all([
     listQuestions().then(parseQuestions),
@@ -97,6 +124,5 @@ P.all([
   ])
   .then(removeSolvedQuestions)
   .then(turnQuestionsIntoArray)
-  .then(startInteractivePrompt)
-  .catch(console.log);
-
+  .then(startStdinListener)
+  .catch(console.error);
