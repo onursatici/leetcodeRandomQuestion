@@ -65,9 +65,38 @@ function removeSolvedQuestions(data) {
   return leetCodeQuestions;
 }
 
+function turnQuestionsIntoArray(questions) {
+  var questionArray = [];
+  for (var q in questions) {
+    if(parseInt(questions[q].number)){
+      questionArray.push({
+        name: q,
+        difficulty: questions[q].difficulty,
+        number: questions[q].number
+      });
+    }
+  }
+  return questionArray;
+}
+
+function rand(start, end) {
+  return Math.floor((Math.random() * end) + start);
+}
+
+function startInteractivePrompt(unsolvedQuestions) {
+  //TODO: finish this, implement the creation of the folder structure
+  var questionNumber = rand(1, unsolvedQuestions.length);
+  console.log('solve this:');
+  var q = unsolvedQuestions[questionNumber];
+  console.log(q);
+}
+
 P.all([
     listQuestions().then(parseQuestions),
     readLeetCodedir().then(removeHiddenFiles)
   ])
   .then(removeSolvedQuestions)
-  .then(console.log);
+  .then(turnQuestionsIntoArray)
+  .then(startInteractivePrompt)
+  .catch(console.log);
+
